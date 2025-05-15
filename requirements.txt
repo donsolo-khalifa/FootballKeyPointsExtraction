@@ -1,0 +1,5 @@
+opencv-python
+cvzone
+ultralytics
+tqdm
+numpy
