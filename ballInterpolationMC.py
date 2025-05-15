@@ -17,9 +17,9 @@ detector = PoseDetector()
 model = YOLO('../QuadraticParabola/yolo-weights/yolov8x.pt')
 BALL_CLASS_ID = 32
 
-posList = []
-ball_positions = []  # Store ball positions for interpolation
-frame_indices = []  # Store frame indices where ball was detected
+# Store detected ball positions and their frame indices
+detected_ball_positions = []
+detected_frame_indices = []
 
 # 3) First pass - collect all ball detections
 for frame_idx in tqdm(range(total_frames), desc="Detecting ball positions"):
@@ -28,73 +28,57 @@ for frame_idx in tqdm(range(total_frames), desc="Detecting ball positions"):
         break
 
     # Ball detection
-    ball_center = None
     for r in model(img, stream=False, verbose=False):
         for box in r.boxes:
             if int(box.cls[0]) == BALL_CLASS_ID:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])
                 cx = x1 + (x2 - x1) // 2
                 cy = y1 + (y2 - y1) // 2
-                ball_center = (cx, cy)
-                ball_positions.append(ball_center)
-                frame_indices.append(frame_idx)
-                break
+                detected_ball_positions.append((cx, cy))
+                detected_frame_indices.append(frame_idx)
+                break # Assuming only one ball per frame
 
-    # Reset video position to beginning
-    if frame_idx == total_frames - 1:
-        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+# Convert to numpy arrays for easier handling
+detected_frame_indices = np.array(detected_frame_indices)
+detected_ball_positions = np.array(detected_ball_positions)
 
-# 4) Interpolate missing ball positions
-all_ball_positions = []
-if len(ball_positions) > 1:  # Only interpolate if we have at least 2 detections
-    for frame_idx in range(total_frames):
-        if frame_idx in frame_indices:
-            # Use actual detection
-            ball_pos = ball_positions[frame_indices.index(frame_idx)]
-            all_ball_positions.append(ball_pos)
-        else:
-            # Find nearest detections before and after current frame
-            prev_idx = -1
-            next_idx = -1
+# 4) Interpolate missing ball positions using NumPy
+all_ball_positions = np.zeros((total_frames, 2), dtype=np.int32) # Initialize array for all frames
 
-            for i, idx in enumerate(frame_indices):
-                if idx < frame_idx:
-                    prev_idx = i
-                if idx > frame_idx and next_idx == -1:
-                    next_idx = i
-                    break
+if len(detected_frame_indices) > 1:
+    # Create an array of all frame indices
+    all_frame_indices = np.arange(total_frames)
 
-            # Interpolate
-            if prev_idx != -1 and next_idx != -1:
-                # Linear interpolation between two known positions
-                prev_frame = frame_indices[prev_idx]
-                next_frame = frame_indices[next_idx]
-                prev_pos = ball_positions[prev_idx]
-                next_pos = ball_positions[next_idx]
+    # Use numpy.interp for linear interpolation
+    # It expects x-coordinates (frame indices where data is known),
+    # fp-coordinates (the known data points, ball positions),
+    # and xp-coordinates (the new x-coordinates to interpolate at, all frame indices)
 
-                # Calculate interpolation factor
-                alpha = (frame_idx - prev_frame) / (next_frame - prev_frame)
+    # Interpolate X coordinates
+    all_ball_positions[:, 0] = np.interp(
+        all_frame_indices,          # The x-coordinates where we want to interpolate (all frame indices)
+        detected_frame_indices,     # The x-coordinates of the data points (detected frame indices)
+        detected_ball_positions[:, 0] # The y-coordinates of the data points (detected ball X positions)
+    )
 
-                # Interpolate x and y
-                x = int(prev_pos[0] + alpha * (next_pos[0] - prev_pos[0]))
-                y = int(prev_pos[1] + alpha * (next_pos[1] - prev_pos[1]))
+    # Interpolate Y coordinates
+    all_ball_positions[:, 1] = np.interp(
+        all_frame_indices,          # The x-coordinates where we want to interpolate (all frame indices)
+        detected_frame_indices,     # The x-coordinates of the data points (detected frame indices)
+        detected_ball_positions[:, 1] # The y-coordinates of the data points (detected ball Y positions)
+    )
 
-                all_ball_positions.append((x, y))
-            elif prev_idx != -1:
-                # If only have previous detections, use the last known position
-                all_ball_positions.append(ball_positions[prev_idx])
-            elif next_idx != -1:
-                # If only have future detections, use the first known position
-                all_ball_positions.append(ball_positions[next_idx])
-            else:
-                # No detections at all (shouldn't happen)
-                all_ball_positions.append((0, 0))
+elif len(detected_frame_indices) == 1:
+     # If only one detection, fill all frames with that position
+     all_ball_positions[:, 0] = detected_ball_positions[0, 0]
+     all_ball_positions[:, 1] = detected_ball_positions[0, 1]
 else:
-    # If fewer than 2 detections, can't interpolate
-    all_ball_positions = [(0, 0)] * total_frames
+    # If no detections, all positions remain (0, 0) as initialized
+    pass
 
 # 5) Second pass - process all frames with interpolated ball positions
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+posList = [] # Reset posList for the second pass
 for frame_idx in tqdm(range(total_frames), desc="Processing frames"):
     success, img = cap.read()
     if not success:
@@ -104,8 +88,8 @@ for frame_idx in tqdm(range(total_frames), desc="Processing frames"):
     img = detector.findPose(img)
     lmList, _ = detector.findPosition(img, draw=False)
 
-    # Get interpolated ball position
-    ball_center = all_ball_positions[frame_idx] if frame_idx < len(all_ball_positions) else (0, 0)
+    # Get interpolated ball position from the NumPy array
+    ball_center = all_ball_positions[frame_idx]
 
     # Record
     if lmList:
@@ -116,7 +100,7 @@ for frame_idx in tqdm(range(total_frames), desc="Processing frames"):
             z_s = lm[2] / 300
             parts += [f"{x_s:.4f}", f"{y_s:.4f}", f"{z_s:.4f}"]
 
-        # ball as 34th joint (now interpolated when needed)
+        # ball as 34th joint (now interpolated from NumPy array)
         bx, by = ball_center
         parts += [f"{bx / 100:.4f}", f"{(img.shape[0] - by) / 100:.4f}", "0.0000"]
 
@@ -130,4 +114,4 @@ with open("AnimationFile.txt", "w") as f:
 
 print("✅ Done — wrote", len(posList), "frames to AnimationFile.txt")
 print(
-    f"Ball was detected in {len(frame_indices)} frames and interpolated in {total_frames - len(frame_indices)} frames")
+    f"Ball was detected in {len(detected_frame_indices)} frames and interpolated in {total_frames - len(detected_frame_indices)} frames")

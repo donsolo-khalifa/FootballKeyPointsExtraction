@@ -14,7 +14,7 @@
 *.tiff
 
 # Ignore output text files
-# AnimationFile.txt
+AnimationFile.txt
 
 randomNano.pt
 

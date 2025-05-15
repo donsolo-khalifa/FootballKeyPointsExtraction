@@ -5,7 +5,7 @@ A Python-based motion capture system that uses computer vision to detect human p
 ![Image](thumbnail.png)
 
 
-## Overview
+## 🪟 Overview
 
 This project provides tools to:
 
@@ -17,7 +17,7 @@ This project provides tools to:
 
 The system supports both real-time preview and offline processing of video files, with options for basic or advanced ball interpolation.
 
-## Files
+## 🗃️ Files
 
 ```bash
   git clone https://github.com/donsolo-khalifa/FootballKeyPointsExtraction.git
@@ -50,7 +50,7 @@ FootballKeyPointsExtraction/
 - `AnimationCode.cs` - Script for reading animation data and applying it to skeleton and ball
 - `SkeletonRenderer.cs` - Script for rendering the skeleton by drawing lines between joints
 
-## Requirements
+## 🛠️ Requirements
 
 ```bash
 pip install -r requirements.txt
@@ -64,7 +64,7 @@ tqdm
 numpy
 ```
 
-## Usage
+## 📋 Usage
 
 ### Real-time Preview
 
@@ -100,7 +100,7 @@ This uses a two-pass approach:
 2. Second pass interpolates missing positions and processes pose keypoints
 3. Outputs combined data to `AnimationFile.txt`
 
-## Output Format
+## ℹ️ Output Format
 
 The `AnimationFile.txt` contains comma-separated values for each frame:
 
@@ -169,7 +169,7 @@ The project includes ready-to-use Unity scripts for rendering the captured motio
 - Modify the `_connections` array in `SkeletonRenderer.cs` to change which joints are connected
 - Customize the line appearance by changing the LineRenderer prefab properties
 
-## Customization
+## 🚧 Customization
 
 - For real-time webcam use, modify scripts to use `cv2.VideoCapture(0)` instead of `cv2.VideoCapture('vida.mp4')` 
 - Change `video_path` in the scripts to use a different video file
@@ -178,7 +178,7 @@ The project includes ready-to-use Unity scripts for rendering the captured motio
 - Set `MAX_FRAMES_TO_KEEP` in real-time applications to control how long a ball position is retained when detection fails
 
 
-## Performance Notes
+## 📝 Performance Notes
 
 - `ballInterpolationMC.py` provides smoother ball tracking but is not suitable for real-time applications
 - For real-time processing (like with a webcam), use `motionCapture.py` or implement simple interpolation with a single-pass approach
