@@ -13,6 +13,9 @@
 *.bmp
 *.tiff
 
+# tempory test script
+temp.py
+
 # Ignore output text files
 AnimationFile.txt
 
