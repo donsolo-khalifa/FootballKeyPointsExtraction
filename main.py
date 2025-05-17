@@ -9,7 +9,7 @@ cap = cv2.VideoCapture('vida.mp4')
 detector = PoseDetector()
 posList = []
 
-model = YOLO('../QuadraticParabola/yolo-weights/yolov8m.pt')
+model = YOLO('../QuadraticParabola/yolo-weights/yolo11x.pt')
 names = model.names
 BALL_CLASS_ID = 32  # COCO index for sports ball 32 for yolov8 coco
 
@@ -47,9 +47,10 @@ while True:
     #     lmString = ''
     #     for lm in lmList:
     #         lmString += f'{lm[0]},{img.shape[0] - lm[1]},{lm[2]},'
-    #     posList.append(lmString)
+    #         print(lm[2])
     #
-    # print(len(posList))
+    #     posList.append(lmString)
+
 
     cv2.imshow("Image", img)
 

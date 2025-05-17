@@ -100,9 +100,16 @@ for frame_idx in tqdm(range(total_frames), desc="Processing frames"):
             z_s = lm[2] / 300
             parts += [f"{x_s:.4f}", f"{y_s:.4f}", f"{z_s:.4f}"]
 
-        # ball as 34th joint (now interpolated from NumPy array)
+
+        # all body points z indexes
+        zs = np.array([lm[2] for lm in lmList], dtype=float)
+
+        # average body points z index
+        z_avg = zs.mean()
+
+        # ball x and y c ordinates as 34th joint (now interpolated from NumPy array) + average body point z-index as ball z-index
         bx, by = ball_center
-        parts += [f"{bx / 100:.4f}", f"{(img.shape[0] - by) / 100:.4f}", "0.0000"]
+        parts += [f"{bx / 100:.4f}", f"{(img.shape[0] - by) / 100:.4f}", f"{z_avg / 300:.4f}"]
 
         posList.append(",".join(parts))
 
