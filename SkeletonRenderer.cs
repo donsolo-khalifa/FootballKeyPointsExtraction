@@ -9,7 +9,7 @@ public class SkeletonRenderer : MonoBehaviour {
     [Tooltip("Prefab or default LineRenderer settings (assign a GameObject with a LineRenderer).")]
     public LineRenderer linePrefab;
 
-    // MediaPipe’s 33?landmark connections
+    // MediaPipeï¿½s 33?landmark connections
     // Each pair is (startIndex, endIndex)
     private readonly int[,] _connections = new int[,]
     {
@@ -22,7 +22,7 @@ public class SkeletonRenderer : MonoBehaviour {
         {23,24}, {23,25}, {24,26},         // hips
         {25,27}, {27,29},                  // right lower leg
         {26,28}, {28,30},                  // left lower leg
-        {29,31}, {30,32}                   // feet
+        {29,31}, {30,32}, {32,28}, {31,27}                    // feet
         // add more pairs if desired (e.g. face or hands)
     };
 

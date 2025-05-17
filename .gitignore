@@ -15,6 +15,7 @@
 
 # tempory test script
 temp.py
+*.txt
 
 # Ignore output text files
 AnimationFile.txt
