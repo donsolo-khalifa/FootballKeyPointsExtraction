@@ -9,7 +9,7 @@ cap = cv2.VideoCapture('vida.mp4')
 detector = PoseDetector()
 posList = []
 
-model = YOLO('../QuadraticParabola/yolo-weights/yolo11x.pt')
+model = YOLO('yolo11x.pt')
 names = model.names
 BALL_CLASS_ID = 32  # COCO index for sports ball 32 for yolov8 coco
 

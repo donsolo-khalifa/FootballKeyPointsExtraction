@@ -14,7 +14,7 @@ total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
 # 2) Detectors
 detector = PoseDetector()
-model = YOLO('../QuadraticParabola/yolo-weights/yolov8x.pt')
+model = YOLO('yolo11x.pt')
 BALL_CLASS_ID = 32
 
 # Store detected ball positions and their frame indices
